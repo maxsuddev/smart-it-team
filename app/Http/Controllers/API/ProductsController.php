@@ -117,14 +117,14 @@ class ProductsController extends Controller
                 'image' => $path ?? $product->image,
             ]);
             return response()->json([
-                'message' => 'Product created successfully',
+                'message' => 'Product update successfully',
                 'data' => $product
             ], 200);
         }catch (Exception $e) {
-            Log::error('Product creation failed: ' . $e->getMessage());
+            Log::error('Product update failed: ' . $e->getMessage());
 
             return response()->json([
-                'message' => 'Product creation failed',
+                'message' => 'Product update failed',
                 'error' => $e->getMessage()
             ], 500);
         }

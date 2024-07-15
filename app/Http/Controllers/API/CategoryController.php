@@ -90,35 +90,43 @@ class CategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
-
-        $validator = Validator::make($request->all(),[
-            'name' => 'required|string|:255',
-            'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', 'image'
-        ]);
-        if($validator->fails()){
-            return response()->json([
-                'message' => 'Category validation error',
-                'errors' => $validator->messages(),
-            ],422);
-        }
-        if(request()->hasFile('image')) {
-            if (isset($category->image)) {
-                Storage::delete($category->image);
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|:255',
+                'description' => 'required|string',
+                'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', 'image'
+            ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Category validation error',
+                    'errors' => $validator->messages(),
+                ], 422);
             }
-            $name = $request->file('image')->getClientOriginalName();
-            $path = $request->file('image')->storeAs('category-photos', $name);
-        }
+            if (request()->hasFile('image')) {
+                if (isset($category->image)) {
+                    Storage::delete($category->image);
+                }
+                $name = $request->file('image')->getClientOriginalName();
+                $path = $request->file('image')->storeAs('category-photos', $name);
+            }
 
-        $category->update([
-            'name' => $request->name,
-            'description' => $request->description,
-            'image' => $path ?? $category->image,
-        ]);
-        return response()->json([
-            'message' => 'Category update successfully',
-            'data' => $category
-        ], 200);
+            $category->update([
+                'name' => $request->name,
+                'description' => $request->description,
+                'image' => $path ?? $category->image,
+            ]);
+            return response()->json([
+                'message' => 'Category update successfully',
+                'data' => $category
+            ], 200);
+        }catch (Exception $e) {
+            Log::error('Category update failed: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Product update failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
