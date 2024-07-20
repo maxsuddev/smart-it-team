@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +14,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'role',
     ];
 
     protected $hidden = [
