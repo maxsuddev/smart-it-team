@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Products;
 use Exception;
+use Illuminate\Auth\Access\Gate;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -51,9 +51,11 @@ class ProductsController extends Controller
                 ], 422);
             }
 
-            if ($request->hasFile('image')) {
-                $name = $request->file('image')->getClientOriginalName();
-                $path = $request->file('image')->storeAs('products-photos', $name);
+            $time = microtime(true);
+            $path = $time;
+            if(request()->hasFile('image')){
+                $name = md5($request->file('image')->getClientOriginalName());
+                $path = $request->file('image')->storeAs('products-photos', $name.'.'.$request->file('image')->getClientOriginalExtension());
             }
 
             $product = Products::create([
@@ -61,7 +63,7 @@ class ProductsController extends Controller
                 'name' => $request->name,
                 'description' => $request->description,
                 'price' => $request->price,
-                'image' => $path ?? ''
+                'image' =>  'storage/'. $path ?? ''
             ]);
 
             return response()->json([
@@ -112,12 +114,14 @@ class ProductsController extends Controller
                 ], 422);
             }
 
-            if ($request->hasFile('image')) {
+
+            if (request()->hasFile('image')) {
                 if (isset($product->image)) {
                     Storage::delete($product->image);
                 }
-                $name = $request->file('image')->getClientOriginalName();
-                $path = $request->file('image')->storeAs('products-photos', $name);
+                $time = microtime(true);
+                $name = md5($request->file('image')->getClientOriginalName());
+                $path = $request->file('image')->storeAs('storage/products-photos', $time.$name.'.'.$request->file('image')->getClientOriginalExtension());
             }
 
             $product->update([
@@ -125,7 +129,7 @@ class ProductsController extends Controller
                 'name' => $request->name,
                 'description' => $request->description,
                 'price' => $request->price,
-                'image' => $path ?? $product->image,
+                'image' =>   $path ?? $product->image,
             ]);
 
             return response()->json([

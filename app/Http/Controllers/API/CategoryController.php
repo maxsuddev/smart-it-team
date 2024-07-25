@@ -31,30 +31,29 @@ class CategoryController extends Controller
         if (Gate::denies('create', auth()->user())) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
-
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'description' => 'required|string',
                 'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
             ]);
-
             if ($validator->fails()) {
                 return response()->json([
                     'message' => 'Category validation error',
                     'errors' => $validator->messages(),
                 ], 422);
             }
-
-            if ($request->hasFile('image')) {
-                $name = $request->file('image')->getClientOriginalName();
-                $path = $request->file('image')->storeAs('category-photos', $name);
+            $time = microtime(true);
+            $path = $time;
+            if (request()->hasFile('image')) {
+                $name = md5($request->file('image')->getClientOriginalName());
+                $path = $request->file('image')->storeAs('category-photos', $name . '.' . $request->file('image')->getClientOriginalExtension());
             }
 
             $category = Category::create([
                 'name' => $request->name,
                 'description' => $request->description,
-                'image' => $path ?? '',
+                'image' =>  'storage/'. $path ?? ''
             ]);
 
             return response()->json([
@@ -83,7 +82,7 @@ class CategoryController extends Controller
         }
     }
 
-    public function update(Request $request, Category $category)
+    public function update(Request $request, Category $category )
     {
         if (Gate::denies('update', auth()->user())) {
             return response()->json(['message' => 'Unauthorized.'], 403);
@@ -103,18 +102,19 @@ class CategoryController extends Controller
                 ], 422);
             }
 
-            if ($request->hasFile('image')) {
+            if (request()->hasFile('image')) {
                 if (isset($category->image)) {
                     Storage::delete($category->image);
                 }
-                $name = $request->file('image')->getClientOriginalName();
-                $path = $request->file('image')->storeAs('category-photos', $name);
+                $time = microtime(true);
+                $name = md5($request->file('image')->getClientOriginalName());
+                $path = $request->file('image')->storeAs('storage/category-photos', $time . $name . '.' . $request->file('image')->getClientOriginalExtension());
             }
 
             $category->update([
                 'name' => $request->name,
                 'description' => $request->description,
-                'image' => $path ?? $category->image,
+                'image' =>  $path ?? $category->image,
             ]);
 
             return response()->json([

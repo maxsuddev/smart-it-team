@@ -18,7 +18,8 @@ class CategoryResource extends JsonResource
         return [
           'id' => $this['id'],
             'name' => $this['name'],
-            'image' => $this['image'],
+            'image' => config('app.url') .'/' . $this['image'],
+            'description' => $this['description'],
         ];
     }
 }
